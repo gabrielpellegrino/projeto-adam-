@@ -357,17 +357,35 @@ void hardware_init() {
 // Função principal da fase
 bool play_phase(int sequence_length) {
     int sequence[MAX_SEQUENCE_LENGTH];
+
+    // 🔹 Gerar sequência aleatória
     for (int i = 0; i < sequence_length; i++) {
         sequence[i] = rand() % 3;
     }
 
-    display_message("  Fase com %d   ", "  passos!       ", "  Memorize a    ", "  sequencia.    ");
+    // 🔹 Exibir mensagem no OLED sobre a nova fase
+    char phase_msg[20];
+    sprintf(phase_msg, "Fase %d iniciando!", sequence_length);
+    display_message(phase_msg, "Memorize a", "sequência...", "");
     sleep_ms(2000);
 
+    // 🔹 Exibir a sequência para o jogador no OLED
     for (int i = 0; i < sequence_length; i++) {
-        if (sequence[i] == 0) gpio_put(LED_RED, 1);
-        if (sequence[i] == 1) gpio_put(LED_GREEN, 1);
-        if (sequence[i] == 2) gpio_put(LED_BLUE, 1);
+        char step_msg[20];
+        sprintf(step_msg, "Passo %d/%d", i + 1, sequence_length);
+        
+        // Define cor da sequência e exibe no OLED
+        if (sequence[i] == 0) {
+            display_message(step_msg, "Cor: Vermelho", "", "");
+            gpio_put(LED_RED, 1);
+        } else if (sequence[i] == 1) {
+            display_message(step_msg, "Cor: Verde", "", "");
+            gpio_put(LED_GREEN, 1);
+        } else {
+            display_message(step_msg, "Cor: Azul", "", "");
+            gpio_put(LED_BLUE, 1);
+        }
+
         sleep_ms(500);
         gpio_put(LED_RED, 0);
         gpio_put(LED_GREEN, 0);
@@ -375,24 +393,27 @@ bool play_phase(int sequence_length) {
         sleep_ms(500);
     }
 
-    display_message("  Reproduza a   ", "   sequencia!   ", "", "");
-
+    // 🔹 Exibir mensagem no OLED pedindo para o jogador repetir a sequência
+    display_message("Agora sua vez!", "Reproduza a", "sequencia!", "");
+    
+    // 🔹 Loop para verificar se o jogador repete a sequência corretamente
     for (int i = 0; i < sequence_length; i++) {
         bool correct_input = false;
         uint64_t start_time = to_ms_since_boot(get_absolute_time());
 
         while (!correct_input) {
-            // ✅ Tempo esgotado já estava certo, só confirmando
+            // 🔹 Verificar se o tempo acabou
             if (to_ms_since_boot(get_absolute_time()) - start_time > 5000) {
-                display_message("Tempo esgotado! ", "Tente novamente.", "", "");
-                acender_matriz_erro();  // LEDs vermelhos acendem
-                sleep_ms(2000);         // Mostra erro por 2 segundos
-                apagar_matriz();        // Apaga os LEDs
+                display_message( "","Tempo esgotado!", "Tente novamente.", "");
+                acender_matriz_erro();  // Acende LEDs de erro
+                sleep_ms(2000);
+                apagar_matriz();        // Apaga LEDs
                 return false;
             }
 
-            // ✅ Botão A - precisa chamar `acender_matriz_erro();` antes de retornar
+            // 🔹 Verificar se o jogador pressionou um botão correto
             if (!gpio_get(BUTTON_A)) {
+                display_message("Botao", "pressionado:", "Vermelho", "");
                 play_tone(1000, 100);
                 gpio_put(LED_RED, 1);
                 sleep_ms(200);
@@ -400,16 +421,16 @@ bool play_phase(int sequence_length) {
                 if (sequence[i] == 0) {
                     correct_input = true;
                 } else {
-                    acender_matriz_erro();  // LEDs vermelhos acendem e toca música de erro
+                    display_message("","Erro!", "Pressionou", "errado!");
+                    acender_matriz_erro();
                     sleep_ms(2000);
                     apagar_matriz();
                     return false;
                 }
             }
-            
 
-            // ✅ Botão B - precisa chamar `acender_matriz_erro();` antes de retornar
             if (!gpio_get(BUTTON_B)) {
+                display_message("", "Botao", "pressionado:", "Verde");
                 play_tone(1200, 100);
                 gpio_put(LED_GREEN, 1);
                 sleep_ms(200);
@@ -417,16 +438,16 @@ bool play_phase(int sequence_length) {
                 if (sequence[i] == 1) {
                     correct_input = true;
                 } else {
-                    acender_matriz_erro();  // LEDs vermelhos acendem e toca música de erro
+                    display_message("", "Erro!", "Pressionou", "errado!");
+                    acender_matriz_erro();
                     sleep_ms(2000);
                     apagar_matriz();
                     return false;
                 }
             }
-            
 
-            // ✅ Joystick Button - precisa chamar `acender_matriz_erro();` antes de retornar
             if (!gpio_get(JOYSTICK_BUTTON)) {
+                display_message("", "Botao","pressionado:", "Azul");
                 play_tone(800, 100);
                 gpio_put(LED_BLUE, 1);
                 sleep_ms(200);
@@ -434,25 +455,37 @@ bool play_phase(int sequence_length) {
                 if (sequence[i] == 2) {
                     correct_input = true;
                 } else {
-                    acender_matriz_erro();  // LEDs vermelhos acendem e toca música de erro
+                    display_message("============", "Erro!", "Pressionou", "errado!");
+                    acender_matriz_erro();
                     sleep_ms(2000);
                     apagar_matriz();
                     return false;
                 }
             }
-            
-            
         }
     }
 
-    // ✅ Acende a matriz de acerto quando a sequência for correta
-    acender_matriz();
-    play_celebration_music();  // Adicionando a música de comemoração
+    // 🔹 Exibir mensagem de sucesso no OLED
+    display_message("Fase concluida!", "Prepare-se", "para a", "proxima!");
+    acender_matriz();  // LEDs piscam para mostrar sucesso
+    play_celebration_music();  // Música de comemoração
     sleep_ms(2000);
     apagar_matriz();
+    
     return true;
-
 }
+
+void display_phase_result(bool success, int phase) {
+    if (success) {
+        char msg[20];
+        sprintf(msg, "Fase %d concluida!", phase);
+        display_message("Parabens!", msg, "Prepare-se", "para a" "proxima!");
+    } else {
+        display_message("Voce errou!", "Tente novamente!", "", "");
+    }
+    sleep_ms(2000);  // Exibe a mensagem por 2 segundos
+}
+
 
 // Inicializa o ADC do microfone
 void init_adc() {
@@ -541,7 +574,7 @@ bool detect_claps(const char* message) {
         sleep_ms(10); // Pequena espera para evitar leituras erradas
     }
 
-    display_message("Muito bem!", "Iniciando o jogo...", "", "");
+    display_message("","Muito bem!", "Iniciando", "o jogo...");
     sleep_ms(1000);  // Pequena pausa antes de iniciar a música
     apagar_matriz(); // Agora apagamos a matriz antes do jogo
     return true;
@@ -563,7 +596,7 @@ int main() {
     detect_claps("Bem-vindo!");
 
     // Agora toca a música do Mario direto após as 3 palmas
-    display_message("Projeto Adam.", "Oferecimento", "EMBARCATECH...", "");
+    display_message("===========","Projeto Adam.", "Oferecimento", "EMBARCATECH...");
     play_music();
     
     int phase = 1, sequence_length = 3;
@@ -573,7 +606,7 @@ int main() {
 
     // Última fase das palmas
     if (play_clap_phase()) {
-        display_message("Parabéns!", "Jogo concluído!", "", "");
+        display_message("Parabens!", "Jogo concluído!", "", "");
     }
 
     return 0;
