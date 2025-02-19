@@ -175,9 +175,9 @@ void npInit(uint pin) {
 // Define a cor de um LED com 30% do brilho original (redução de 70%)
 void npSetLED(uint index, uint8_t r, uint8_t g, uint8_t b) {
     if (index < LED_COUNT) {
-        leds[index].R = r * 0.3;  // Mantém apenas 30% do brilho original
-        leds[index].G = g * 0.3;  // Mantém apenas 30% do brilho original
-        leds[index].B = b * 0.3;  // Mantém apenas 30% do brilho original
+        leds[index].R = r * 0.1;  // Mantém apenas 10/% do brilho original
+        leds[index].G = g * 0.1;  // Mantém apenas 10% do brilho original
+        leds[index].B = b * 0.1;  // Mantém apenas 10% do brilho original
     }
 }
 
@@ -196,27 +196,30 @@ int getIndex(int x, int y) {
     return (y % 2 == 0) ? (y * 5 + x) : (y * 5 + (4 - x));
 }
 
-// Matriz de LEDs para indicar acerto (brilho reduzido em 70%)
+// Matriz de LEDs para indicar acerto
 void acender_matriz() {
     uint32_t matriz_hex[5][5] = {
-        {0x000000, 0x000000, 0xFFFFFF, 0x000000, 0x000000},
-        {0x000000, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0x000000},
-        {0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF},
-        {0x000000, 0x000000, 0xFFFFFF, 0x000000, 0x000000},
+        {0x000000,  0xADD8E6, 0xADD8E6, 0xADD8E6, 0x000000},
+        {0xADD8E6,0x000000, 0x000000, 0x000000, 0xADD8E6},
+        {0x000000, 0x000000, 0x000000, 0x000000, 0x000000},
+        {0x000000, 0xADD8E6, 0x000000, 0xADD8E6, 0x000000},
         {0x000000, 0x000000, 0x000000, 0x000000, 0x000000}
     };
+    
+    
+    
 
     for (int linha = 0; linha < 5; linha++) {
         for (int coluna = 0; coluna < 5; coluna++) {
             int posicao = getIndex(coluna, linha);
             uint32_t color = matriz_hex[linha][coluna];
-            npSetLED(posicao, (color >> 16 & 0xFF) * 0.3, (color >> 8 & 0xFF) * 0.3, (color & 0xFF) * 0.3);
+            npSetLED(posicao, (color >> 16 & 0xFF) * 0.1, (color >> 8 & 0xFF) * 0.1, (color & 0xFF) * 0.1);
         }
     }
     npWrite();
 }
 
-// Matriz de LEDs para indicar erro (brilho reduzido em 70%)
+// Matriz de LEDs para indicar erro 
 void acender_matriz_erro() {
     uint32_t matriz_hex_erro[5][5] = {
         {0x000000, 0x000000, 0xFF0000, 0x000000, 0x000000},
@@ -230,7 +233,7 @@ void acender_matriz_erro() {
         for (int coluna = 0; coluna < 5; coluna++) {
             int posicao = getIndex(coluna, linha);
             uint32_t color = matriz_hex_erro[linha][coluna];
-            npSetLED(posicao, (color >> 16 & 0xFF) * 0.3, (color >> 8 & 0xFF) * 0.3, (color & 0xFF) * 0.3);
+            npSetLED(posicao, (color >> 16 & 0xFF) * 0.1, (color >> 8 & 0xFF) * 0.1, (color & 0xFF) * 0.1);
         }
     }
 
@@ -411,7 +414,7 @@ bool play_phase(int sequence_length) {
                 return false;
             }
 
-            // 🔹 Verificar se o jogador pressionou um botão correto
+            //  Verificar se o jogador pressionou um botão correto
             if (!gpio_get(BUTTON_A)) {
                 display_message("Botao", "pressionado:", "Vermelho", "");
                 play_tone(1000, 100);
@@ -465,7 +468,7 @@ bool play_phase(int sequence_length) {
         }
     }
 
-    //  Exibir mensagem de sucesso no OLED
+    // 🔹 Exibir mensagem de sucesso no OLED
     display_message("Fase concluida!", "Prepare-se", "para a", "proxima!");
     acender_matriz();  // LEDs piscam para mostrar sucesso
     play_celebration_music();  // Música de comemoração
@@ -514,7 +517,7 @@ void update_clap_leds(int clap_count) {
         {0x000000, 0x00FF00, 0x00FF00, 0x00FF00, 0x000000}
     };
 
-    uint32_t matriz_3[5][5] = { // Terceira palma (LEDs roxos, com mais apagados)
+    uint32_t matriz_3[5][5] = { // Terceira palma 
         {0x000000, 0x000000, 0x800080, 0x000000, 0x000000},
         {0x000000, 0x800080, 0x800080, 0x800080, 0x000000},
         {0x800080, 0x800080, 0x800080, 0x800080, 0x800080},
@@ -545,7 +548,7 @@ bool detect_claps(const char* message) {
     int clap_count = 0;
     uint64_t last_clap_time = 0;
 
-    display_message(message, "Bata 3 palmas!", "", "");
+    display_message(message,"", "Bata 3 palmas!", "");
 
     while (clap_count < 3) {
         uint16_t sample = adc_read();
