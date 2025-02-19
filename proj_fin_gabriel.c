@@ -358,18 +358,18 @@ void hardware_init() {
 bool play_phase(int sequence_length) {
     int sequence[MAX_SEQUENCE_LENGTH];
 
-    // 🔹 Gerar sequência aleatória
+    //  Gerar sequência aleatória
     for (int i = 0; i < sequence_length; i++) {
         sequence[i] = rand() % 3;
     }
 
-    // 🔹 Exibir mensagem no OLED sobre a nova fase
+    //  Exibir mensagem no OLED sobre a nova fase
     char phase_msg[20];
     sprintf(phase_msg, "Fase %d iniciando!", sequence_length);
     display_message(phase_msg, "Memorize a", "sequência...", "");
     sleep_ms(2000);
 
-    // 🔹 Exibir a sequência para o jogador no OLED
+    //  Exibir a sequência para o jogador no OLED
     for (int i = 0; i < sequence_length; i++) {
         char step_msg[20];
         sprintf(step_msg, "Passo %d/%d", i + 1, sequence_length);
@@ -393,16 +393,16 @@ bool play_phase(int sequence_length) {
         sleep_ms(500);
     }
 
-    // 🔹 Exibir mensagem no OLED pedindo para o jogador repetir a sequência
+    //  Exibir mensagem no OLED pedindo para o jogador repetir a sequência
     display_message("Agora sua vez!", "Reproduza a", "sequencia!", "");
     
-    // 🔹 Loop para verificar se o jogador repete a sequência corretamente
+    //  Loop para verificar se o jogador repete a sequência corretamente
     for (int i = 0; i < sequence_length; i++) {
         bool correct_input = false;
         uint64_t start_time = to_ms_since_boot(get_absolute_time());
 
         while (!correct_input) {
-            // 🔹 Verificar se o tempo acabou
+            //  Verificar se o tempo acabou
             if (to_ms_since_boot(get_absolute_time()) - start_time > 5000) {
                 display_message( "","Tempo esgotado!", "Tente novamente.", "");
                 acender_matriz_erro();  // Acende LEDs de erro
@@ -465,7 +465,7 @@ bool play_phase(int sequence_length) {
         }
     }
 
-    // 🔹 Exibir mensagem de sucesso no OLED
+    //  Exibir mensagem de sucesso no OLED
     display_message("Fase concluida!", "Prepare-se", "para a", "proxima!");
     acender_matriz();  // LEDs piscam para mostrar sucesso
     play_celebration_music();  // Música de comemoração
@@ -582,7 +582,7 @@ bool detect_claps(const char* message) {
 
 // Última fase das 3 palmas
 bool play_clap_phase() {
-    return detect_claps("Última fase!");
+    return detect_claps("Ultima fase!");
 }
 
 int main() {
@@ -606,7 +606,7 @@ int main() {
 
     // Última fase das palmas
     if (play_clap_phase()) {
-        display_message("Parabens!", "Jogo concluído!", "", "");
+        display_message("Parabens!", "Jogo concluido!", "", "");
     }
 
     return 0;
